@@ -3,7 +3,6 @@ from avalanche.benchmarks.classic import SplitMNIST
 from avalanche.evaluation.metrics import (StreamConfusionMatrix,
                                           accuracy_metrics)
 from avalanche.logging import InteractiveLogger, TensorboardLogger
-from avalanche.models import SimpleMLP
 from avalanche.training import EvaluationPlugin
 from avalanche.training.plugins import LwFPlugin, ReplayPlugin, StrategyPlugin
 from avalanche.training.strategies import Naive
@@ -11,6 +10,9 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
 from tricicl.constants import TB_DIR
+from tricicl.metrics.confusion_matrix import SortedCMImageCreator
+from tricicl.models.simple_mlp import SimpleMLP
+from tricicl.strategies.icarl import make_icarl_plugins
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -18,7 +20,7 @@ perm_mnist = SplitMNIST(n_experiences=5)
 
 
 def evaluate(name: str, plugins: list[StrategyPlugin]):
-    model = SimpleMLP(num_classes=10)
+    model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
     cl_strategy = Naive(
         model,
@@ -31,7 +33,9 @@ def evaluate(name: str, plugins: list[StrategyPlugin]):
         plugins=plugins,
         evaluator=EvaluationPlugin(
             accuracy_metrics(experience=True, stream=True),
-            StreamConfusionMatrix(num_classes=perm_mnist.n_classes, save_image=True),
+            StreamConfusionMatrix(
+                num_classes=perm_mnist.n_classes, image_creator=SortedCMImageCreator(perm_mnist.classes_order),
+            ),
             loggers=[InteractiveLogger(), TensorboardLogger(TB_DIR / "split_mnist" / name)],
         ),
     )
@@ -42,6 +46,7 @@ def evaluate(name: str, plugins: list[StrategyPlugin]):
 
 
 if __name__ == "__main__":
+    evaluate("iCaRL", make_icarl_plugins(memory_size=200))
     evaluate("LwF", [LwFPlugin()])
     evaluate("naive", [])
     evaluate("replay", [ReplayPlugin()])
