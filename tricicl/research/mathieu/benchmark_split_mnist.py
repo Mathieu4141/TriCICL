@@ -1,7 +1,8 @@
+from typing import List
+
 import torch
 from avalanche.benchmarks.classic import SplitMNIST
-from avalanche.evaluation.metrics import (StreamConfusionMatrix,
-                                          accuracy_metrics)
+from avalanche.evaluation.metrics import StreamConfusionMatrix, accuracy_metrics
 from avalanche.logging import InteractiveLogger, TensorboardLogger
 from avalanche.training import EvaluationPlugin
 from avalanche.training.plugins import LwFPlugin, ReplayPlugin, StrategyPlugin
@@ -19,7 +20,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 perm_mnist = SplitMNIST(n_experiences=5)
 
 
-def evaluate(name: str, plugins: list[StrategyPlugin]):
+def evaluate(name: str, plugins: List[StrategyPlugin]):
     model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
     cl_strategy = Naive(
@@ -34,7 +35,8 @@ def evaluate(name: str, plugins: list[StrategyPlugin]):
         evaluator=EvaluationPlugin(
             accuracy_metrics(experience=True, stream=True),
             StreamConfusionMatrix(
-                num_classes=perm_mnist.n_classes, image_creator=SortedCMImageCreator(perm_mnist.classes_order),
+                num_classes=perm_mnist.n_classes,
+                image_creator=SortedCMImageCreator(perm_mnist.classes_order),
             ),
             loggers=[InteractiveLogger(), TensorboardLogger(TB_DIR / "split_mnist" / name)],
         ),
