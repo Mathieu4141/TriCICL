@@ -38,10 +38,7 @@ def evaluate(name: str, plugins: List[StrategyPlugin]):
                 num_classes=perm_mnist.n_classes,
                 image_creator=SortedCMImageCreator(perm_mnist.classes_order),
             ),
-            loggers=[
-                InteractiveLogger(),
-                TensorboardLogger(TB_DIR / "split_mnist" / name),
-            ],
+            loggers=[InteractiveLogger(), TensorboardLogger(TB_DIR / "split_mnist" / name)],
         ),
     )
 
