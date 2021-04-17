@@ -10,7 +10,8 @@ from tricicl.models.feature_based_module import FeatureBasedModule
 
 class HerdingMemoryStrategy(CILMemoryStrategyABC):
     def select(self, dataset: AvalancheSubset, model: FeatureBasedModule, m: int) -> AvalancheSubset:
-        features = cat([model.featurize(images) for images, *_ in DataLoader(dataset, batch_size=32)])
+        model_device = next(model.parameters()).device
+        features = cat([model.featurize(images.to(model_device)) for images, *_ in DataLoader(dataset, batch_size=32)])
         center = features.mean(dim=0)
         current_center = center * 0
         indices = []
