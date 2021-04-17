@@ -28,10 +28,10 @@ class NMEPlugin(StrategyPlugin):
         self.nme.eval()
         centers, class_ids = [], []
         for class_id, dataset in self.memory.class_id2dataset.items():
-            center = torch.zeros(self.nme.base_module.features_size)
+            center = torch.zeros(self.nme.base_module.features_size, device=self.nme.device)
             n_images = len(dataset)
             for images, *_ in DataLoader(dataset, batch_size=strategy.eval_mb_size):
-                center += self.nme.base_module.featurize(images).sum(dim=0) / n_images
+                center += self.nme.base_module.featurize(images.to(self.nme.device)).sum(dim=0) / n_images
             centers.append(center)
             class_ids.append(class_id)
         self.nme.centers = stack(centers)
