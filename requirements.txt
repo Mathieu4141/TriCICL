@@ -11,3 +11,6 @@ pytorchcv
 quadprog
 tqdm
 googledrivedownloader
+seaborn
+more-itertools
+tensorboard-reducer
