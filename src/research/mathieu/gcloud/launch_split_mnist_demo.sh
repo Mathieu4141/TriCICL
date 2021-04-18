@@ -27,4 +27,5 @@ for METHOD in naive hybrid1; do
   done
 done
 
+echo "See jobs at https://console.cloud.google.com/ai-platform/jobs?authuser=2&project=mathieu-tricicl"
 poetry run tensorboard --logdir gs://tricicl-public/logs/tb/${TASK_NAME}
