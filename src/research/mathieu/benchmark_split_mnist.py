@@ -1,9 +1,9 @@
-from typing import List
+from pathlib import Path
+from typing import List, Union
 
 import torch
 from avalanche.benchmarks.classic import SplitMNIST
 from avalanche.evaluation.metrics import StreamConfusionMatrix, accuracy_metrics
-from avalanche.logging import TensorboardLogger
 from avalanche.training import EvaluationPlugin
 from avalanche.training.plugins import LwFPlugin, ReplayPlugin, StrategyPlugin
 from avalanche.training.strategies import Naive
@@ -12,6 +12,7 @@ from torch.optim import SGD
 from tqdm import tqdm
 
 from tricicl.constants import SEEDS, TB_DIR
+from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.models.simple_mlp import SimpleMLP
 from tricicl.strategies.icarl import make_icarl_plugins
@@ -20,12 +21,18 @@ from tricicl.utils.time import create_time_id
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def evaluate_on_seed(name: str, plugins: List[StrategyPlugin], seed: int):
+def evaluate_on_seed(
+    name: str,
+    plugins: List[StrategyPlugin],
+    seed: int,
+    tensorboard_logs_dir: Union[str, Path] = str(TB_DIR),
+):
+    print(f"Using device {device.type}")
     perm_mnist = SplitMNIST(n_experiences=5, seed=seed)
 
     model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
-    tb_logger = TensorboardLogger(TB_DIR / f"split_mnist/{name}/{seed}_{create_time_id()}")
+    tb_logger = TensorboardLogger(tensorboard_logs_dir + f"t/{name}/{seed}_{create_time_id()}")
 
     cl_strategy = Naive(
         model,
