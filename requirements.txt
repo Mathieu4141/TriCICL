@@ -1,4 +1,4 @@
-git+https://github.com/ContinualAI/avalanche.git
+git+https://github.com/ContinualAI/avalanche.git@9cf3c53d83ffc1b3dfe4400d43356ebcd901cfc9
 typing-extensions
 psutil
 torch
