@@ -12,6 +12,7 @@ class NME(FeatureBasedModule):
         self.base_module = base_module
         self.class_ids: Tensor = None
         self.centers: Tensor = None
+        self.device = next(self.base_module.parameters()).device
 
     def featurize(self, x: Tensor) -> Tensor:
         return self.base_module.featurize(x)
@@ -21,7 +22,7 @@ class NME(FeatureBasedModule):
             return self.base_module.classify(features)
 
         p = stack([1 / torch.pow(feature - self.centers, 2).sum(dim=1) for feature in features])
-        proba = zeros(len(p), self.n_classes)
+        proba = zeros(len(p), self.n_classes, device=self.device)
         proba[:, self.class_ids] = p
         return proba
 

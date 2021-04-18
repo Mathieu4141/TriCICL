@@ -22,6 +22,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def evaluate_on_seed(name: str, plugins: List[StrategyPlugin], seed: int):
     perm_mnist = SplitMNIST(n_experiences=5, seed=seed)
+
     model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
     tb_logger = TensorboardLogger(TB_DIR + f"/split_mnist/{name}/{seed}_{create_time_id()}")
