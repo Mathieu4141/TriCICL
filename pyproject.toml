@@ -23,6 +23,7 @@ torchvision = "^0.9.1"
 black = "20.8b1"
 tensorflow = "^2.4.1"
 google-cloud-storage = "^1.37.1"
+memoized-property = "^1.0.3"
 
 [tool.black]
 line-length = 120
