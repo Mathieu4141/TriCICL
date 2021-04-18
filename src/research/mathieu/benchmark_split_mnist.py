@@ -25,7 +25,7 @@ def evaluate_on_seed(name: str, plugins: List[StrategyPlugin], seed: int):
 
     model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
-    tb_logger = TensorboardLogger(TB_DIR + f"/split_mnist/{name}/{seed}_{create_time_id()}")
+    tb_logger = TensorboardLogger(TB_DIR / f"split_mnist/{name}/{seed}_{create_time_id()}")
 
     cl_strategy = Naive(
         model,

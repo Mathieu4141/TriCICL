@@ -2,7 +2,7 @@ from pathlib import Path
 
 from tricicl.utils.path import safe_path
 
-PROJECT_DIR = Path(__file__).parent.parent
+PROJECT_DIR = Path(__file__).parent.parent.parent
 LOGS_DIR = PROJECT_DIR / "logs"
 TB_DIR = safe_path(LOGS_DIR / "tb")
 CSV_DIR = safe_path(LOGS_DIR / "csv")
