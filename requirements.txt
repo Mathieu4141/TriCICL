@@ -11,3 +11,6 @@ pytorchcv
 quadprog
 tqdm
 googledrivedownloader
+seaborn
+more-itertools
+black==20.8b1
