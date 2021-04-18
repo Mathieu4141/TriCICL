@@ -463,14 +463,6 @@ pyparsing = ">=2.2.1"
 python-dateutil = ">=2.7"
 
 [[package]]
-name = "memoized-property"
-version = "1.0.3"
-description = "A simple python decorator for defining properties that only run their fget function once"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "more-itertools"
 version = "8.7.0"
 description = "More routines for operating on iterables, beyond itertools"
@@ -1076,7 +1068,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "14f8b85a25ce4d8cd536ce97eabcdca68a3d8bbdfcd92a1c22a2d0bf6117330e"
+content-hash = "a61ab36402b570519c5223bcaf0f55ae921b8c5dc045d7b5516e2b2ec8a14262"
 
 [metadata.files]
 absl-py = [
@@ -1428,9 +1420,6 @@ matplotlib = [
     {file = "matplotlib-3.4.1-cp39-cp39-win32.whl", hash = "sha256:9f374961a3996c2d1b41ba3145462c3708a89759e604112073ed6c8bdf9f622f"},
     {file = "matplotlib-3.4.1-cp39-cp39-win_amd64.whl", hash = "sha256:53ceb12ef44f8982b45adc7a0889a7e2df1d758e8b360f460e435abe8a8cd658"},
     {file = "matplotlib-3.4.1.tar.gz", hash = "sha256:84d4c4f650f356678a5d658a43ca21a41fca13f9b8b00169c0b76e6a6a948908"},
-]
-memoized-property = [
-    {file = "memoized-property-1.0.3.tar.gz", hash = "sha256:4be4d0209944b9b9b678dae9d7e312249fe2e6fb8bdc9bdaa1da4de324f0fcf5"},
 ]
 more-itertools = [
     {file = "more-itertools-8.7.0.tar.gz", hash = "sha256:c5d6da9ca3ff65220c3bfd2a8db06d698f05d4d2b9be57e1deb2be5a45019713"},
