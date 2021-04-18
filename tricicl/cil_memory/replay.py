@@ -16,7 +16,7 @@ class CILReplayPlugin(StrategyPlugin):
 
         strategy.current_dataloader = MultiTaskJoinedBatchDataLoader(
             strategy.adapted_dataset,
-            {0: self.memory.dataset},
+            self.memory.dataset,
             batch_size=strategy.train_mb_size,
             shuffle=True,
             oversample_small_tasks=True,
