@@ -38,7 +38,8 @@ def evaluate_on_seed(name: str, plugins: List[StrategyPlugin], seed: int):
         evaluator=EvaluationPlugin(
             accuracy_metrics(experience=True, stream=True),
             StreamConfusionMatrix(
-                num_classes=perm_mnist.n_classes, image_creator=SortedCMImageCreator(perm_mnist.classes_order)
+                num_classes=perm_mnist.n_classes,
+                image_creator=SortedCMImageCreator(perm_mnist.classes_order),
             ),
             loggers=[tb_logger],
         ),
