@@ -8,12 +8,12 @@ from typing import Optional
 
 class RemoteStorageABC(ABC):
     def download_dataset(self, name: str):
-        self.download_directory_if_missing(Path.home() / f".avalanche/data/{name}", PurePath(f"data/{name}"))
+        self.download_zipped_directory_if_missing(Path.home() / f".avalanche/data/{name}", PurePath(f"data/{name}"))
 
     def upload_dataset(self, name: str):
-        self.upload_directory(Path.home() / f".avalanche/data/{name}", PurePath(f"data/{name}"))
+        self.upload_zipped_directory(Path.home() / f".avalanche/data/{name}", PurePath(f"data/{name}"))
 
-    def upload_directory(self, local_path: Path, remote_path: PurePath):
+    def upload_zipped_directory(self, local_path: Path, remote_path: PurePath):
         with TemporaryDirectory() as td_name:
             tar_path = (Path(td_name) / local_path.name).with_suffix(".tar.gz")
             with tarfile.open(tar_path, "w:gz") as tar:
@@ -24,17 +24,17 @@ class RemoteStorageABC(ABC):
         if not local_path.exists():
             self.download_file(local_path, remote_path)
 
-    def download_directory(self, local_path: Path, remote_path: PurePath):
+    def download_zipped_directory(self, local_path: Path, remote_path: PurePath):
         with TemporaryDirectory() as td_name:
             zip_temp = Path(td_name) / f"temp_{local_path.name}.tar.gz"
             self.download_file(zip_temp, remote_path.with_suffix(".tar.gz"))
             local_path.mkdir(exist_ok=True, parents=True)
             shutil.unpack_archive(zip_temp, local_path, "gztar")
 
-    def download_directory_if_missing(self, local_path: Path, remote_path: PurePath):
+    def download_zipped_directory_if_missing(self, local_path: Path, remote_path: PurePath):
         if local_path.exists():
             return
-        self.download_directory(local_path, remote_path)
+        self.download_zipped_directory(local_path, remote_path)
 
     @abstractmethod
     def upload_file(self, local_path: Path, remote_path: PurePath):
