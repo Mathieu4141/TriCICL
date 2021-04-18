@@ -13,4 +13,4 @@ tqdm
 googledrivedownloader
 seaborn
 more-itertools
-tensorboard-reducer
+black==20.8b1
