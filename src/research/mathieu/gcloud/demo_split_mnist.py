@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from avalanche.training.plugins import LwFPlugin, ReplayPlugin
 
 from research.mathieu.benchmark_split_mnist import evaluate_on_seed
+from tricicl.storage.gcloud import GCStorage
 
 
 def get_method_plugins(method_name: str):
@@ -22,8 +23,10 @@ if __name__ == "__main__":
     parser.add_argument("--job-dir")
     args = parser.parse_args()
 
-    logging.info(f"Starting evaluation of {args.method_name} for seed {args.seed}")
+    logging.info(f"Downloading Mnist dataset")
+    GCStorage().download_dataset("mnist")
 
+    logging.info(f"Starting evaluation of {args.method_name} for seed {args.seed}")
     evaluate_on_seed(
         args.method_name,
         get_method_plugins(args.method_name),
