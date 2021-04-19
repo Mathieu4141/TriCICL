@@ -11,9 +11,12 @@ from tensorboard.backend.event_processing.event_accumulator import EventAccumula
 from torch.utils.tensorboard import SummaryWriter
 
 from tricicl.constants import CSV_DIR, TB_DIR
+from tricicl.storage.local_storage import LocalStorage
+from tricicl.storage.remote_storage import RemoteStorageABC, SyncPath
 
 
-def aggregate_task_results(task_name: str):
+def aggregate_task_results(task_name: str, remote_storage: RemoteStorageABC = LocalStorage()):
+    remote_storage.download_directory(SyncPath.from_local(TB_DIR / task_name))
     for algo_dir in _get_all_algo_dirs(task_name):
         _aggregate_algo_tb_results(algo_dir)
     _aggregate_task_results_to_csv(task_name)
