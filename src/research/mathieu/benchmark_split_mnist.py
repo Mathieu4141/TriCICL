@@ -3,7 +3,7 @@ from typing import List, Union
 
 import torch
 from avalanche.benchmarks.classic import SplitMNIST
-from avalanche.evaluation.metrics import StreamConfusionMatrix, accuracy_metrics
+from avalanche.evaluation.metrics import StreamConfusionMatrix
 from avalanche.training import EvaluationPlugin
 from avalanche.training.plugins import LwFPlugin, ReplayPlugin, StrategyPlugin
 from avalanche.training.strategies import Naive
@@ -14,6 +14,7 @@ from tqdm import tqdm
 from tricicl.constants import SEEDS, TB_DIR
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
+from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
 from tricicl.models.simple_mlp import SimpleMLP
 from tricicl.strategies.icarl import make_icarl_plugins
 from tricicl.utils.time import create_time_id
@@ -32,7 +33,7 @@ def evaluate_on_seed(
 
     model = SimpleMLP(n_classes=perm_mnist.n_classes, input_size=28 * 28)
 
-    tb_logger = TensorboardLogger(tensorboard_logs_dir + f"t/{name}/{seed}_{create_time_id()}")
+    tb_logger = TensorboardLogger(tensorboard_logs_dir + f"/split_mnist/{name}/{seed}_{create_time_id()}")
 
     cl_strategy = Naive(
         model,
@@ -44,7 +45,7 @@ def evaluate_on_seed(
         device=device,
         plugins=plugins,
         evaluator=EvaluationPlugin(
-            accuracy_metrics(experience=True, stream=True),
+            [NormalizedStreamAccuracy(), NormalizedExperienceAccuracy()],
             StreamConfusionMatrix(
                 num_classes=perm_mnist.n_classes,
                 image_creator=SortedCMImageCreator(perm_mnist.classes_order),
