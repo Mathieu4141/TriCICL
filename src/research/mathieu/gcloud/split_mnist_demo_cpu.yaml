@@ -1,0 +1,7 @@
+trainingInput:
+  pythonVersion: '3.7'
+  scaleTier: BASIC
+  region: us-central1
+
+  masterConfig:
+    imageUri: gcr.io/cloud-ml-public/training/pytorch-xla.1-7
