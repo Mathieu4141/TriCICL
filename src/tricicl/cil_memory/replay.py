@@ -10,14 +10,15 @@ class CILReplayPlugin(StrategyPlugin):
         super().__init__()
         self.memory = memory
 
-    def before_training_exp(self, strategy: BaseStrategy, **kwargs):
+    def before_training_exp(self, strategy: BaseStrategy, num_workers=0, shuffle=True, **kwargs):
         if not self.memory:
             return
 
-        strategy.current_dataloader = MultiTaskJoinedBatchDataLoader(
+        strategy.dataloader = MultiTaskJoinedBatchDataLoader(
             strategy.adapted_dataset,
             self.memory.dataset,
             batch_size=strategy.train_mb_size,
-            shuffle=True,
+            shuffle=shuffle,
+            num_workers=num_workers,
             oversample_small_tasks=True,
         )
