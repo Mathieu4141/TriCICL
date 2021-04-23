@@ -8,7 +8,7 @@ from tricicl.models.feature_based_module import FeatureBasedModule
 
 class NME(FeatureBasedModule):
     def __init__(self, base_module: FeatureBasedModule):
-        super().__init__(base_module.features_size, base_module.n_classes)
+        super().__init__(base_module.n_classes)
         self.base_module = base_module
         self.class_ids: Tensor = None
         self.centers: Tensor = None
