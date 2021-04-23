@@ -26,7 +26,9 @@ class CILMemoryPlugin(StrategyPlugin):
     def _add_experience_to_memory(self, experience: Experience, model: Module):
         for class_id, subset in make_per_class_subset(experience.dataset):
             self.memory.class_id2dataset[class_id] = self.memory_strategy.select(
-                subset, model, min(self.memory.m, len(experience.dataset)),
+                subset,
+                model,
+                min(self.memory.m, len(experience.dataset)),
             )
 
 
