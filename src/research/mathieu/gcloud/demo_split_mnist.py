@@ -1,20 +1,9 @@
 import logging
 from argparse import ArgumentParser
 
-from avalanche.training.plugins import LwFPlugin, ReplayPlugin
-
-from research.mathieu.benchmark_split_mnist import evaluate_on_seed
+from research.mathieu.benchmark_split_mnist import evaluate_split_mnist
+from research.mathieu.gcloud.utils import get_method_plugins
 from tricicl.storage.gcloud import GCStorage
-
-
-def get_method_plugins(method_name: str):
-    if method_name == "naive":
-        return []
-    elif method_name == "hybrid1":
-        return [ReplayPlugin(), LwFPlugin()]
-
-    raise ValueError(f"Method {method_name} not supported")
-
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -27,7 +16,7 @@ if __name__ == "__main__":
     GCStorage().download_dataset("mnist")
 
     logging.info(f"Starting evaluation of {args.method_name} for seed {args.seed}")
-    evaluate_on_seed(
+    evaluate_split_mnist(
         args.method_name,
         get_method_plugins(args.method_name),
         args.seed,

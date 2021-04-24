@@ -5,30 +5,23 @@ from avalanche.benchmarks.classic import SplitMNIST
 from avalanche.evaluation.metrics import StreamConfusionMatrix
 from avalanche.logging import InteractiveLogger
 from avalanche.training import EvaluationPlugin
-from avalanche.training.plugins import LwFPlugin, StrategyPlugin
+from avalanche.training.plugins import StrategyPlugin
 from avalanche.training.strategies import Naive
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from tqdm import tqdm
 
-from tricicl.cil_memory.memory import CILMemory
-from tricicl.cil_memory.plugin import CILMemoryPlugin
-from tricicl.cil_memory.replay import CILReplayPlugin
-from tricicl.cil_memory.strategy.herding import HerdingMemoryStrategy
-from tricicl.cil_memory.strategy.strategy import CILMemoryStrategyABC
+from research.mathieu.tricicl_plugins import (make_tricicl_alternate_training_plugins,
+                                              make_tricicl_during_training_plugin)
 from tricicl.constants import SEEDS, TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
-from tricicl.models.nme.plugin import NMEPlugin
 from tricicl.models.simple_mlp import SimpleMLP
-from tricicl.triplet_loss.triplet_loss_during_training_plugin import TripletLossDuringTrainingPlugin
-from tricicl.triplet_loss.triplet_loss_post_training_plugin import (TripletLossAlternateTrainingPlugin,
-                                                                    TripletLossPostTrainingPlugin)
 from tricicl.utils.time import create_time_id
 
 
-def evaluate_on_seed(
+def evaluate_split_mnist(
     name: str,
     plugins: List[StrategyPlugin],
     seed: int,
@@ -74,102 +67,9 @@ def evaluate_on_seed(
     tb_logger.writer.flush()
 
 
-def make_tricicl_post_training_plugins(
-    *,
-    memory_size: int,
-    use_replay: bool,
-    use_training_dataloader: bool,
-    classification_loss_coef: float,
-    nme: bool,
-    distillation: bool,
-    memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
-    margin: float = 1,
-):
-    memory = CILMemory(memory_size)
-    plugins = [
-        CILMemoryPlugin(memory, memory_strategy=memory_strategy),
-        TripletLossPostTrainingPlugin(
-            memory=memory,
-            margin=margin,
-            use_training_dataloader=use_training_dataloader,
-            classification_loss_coef=classification_loss_coef,
-        ),
-    ]
-    if use_replay:
-        plugins.append(CILReplayPlugin(memory))
-    if nme:
-        plugins.append(NMEPlugin(memory))
-    if distillation:
-        plugins.append(LwFPlugin())
-    return plugins
-
-
-def make_tricicl_alternate_training_plugins(
-    *,
-    memory_size: int,
-    use_replay: bool,
-    use_training_dataloader: bool,
-    classification_loss_coef: float,
-    nme: bool,
-    distillation: bool,
-    after_last_epoch: bool,
-    memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
-    margin: float = 1,
-    verbose: bool = False,
-):
-    memory = CILMemory(memory_size)
-    plugins = [
-        CILMemoryPlugin(memory, memory_strategy=memory_strategy),
-        TripletLossAlternateTrainingPlugin(
-            memory=memory,
-            margin=margin,
-            use_training_dataloader=use_training_dataloader,
-            classification_loss_coef=classification_loss_coef,
-            after_last_epoch=after_last_epoch,
-            verbose=verbose,
-        ),
-    ]
-    if use_replay:
-        plugins.append(CILReplayPlugin(memory))
-    if nme:
-        plugins.append(NMEPlugin(memory))
-    if distillation:
-        plugins.append(LwFPlugin())
-    return plugins
-
-
-def make_tricicl_during_training_plugin(
-    *,
-    memory_size: int,
-    use_replay: bool,
-    nme: bool,
-    distillation: bool,
-    memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
-    margin: float = 1,
-    coef_tl: float = 1,
-):
-    memory = CILMemory(memory_size)
-    plugins = [
-        CILMemoryPlugin(memory, memory_strategy=memory_strategy),
-        TripletLossDuringTrainingPlugin(memory=memory, margin=margin, coef=coef_tl),
-    ]
-    if use_replay:
-        plugins.append(CILReplayPlugin(memory))
-    if nme:
-        plugins.append(NMEPlugin(memory))
-    if distillation:
-        plugins.append(LwFPlugin())
-    return plugins
-
-
-def make_replay_plugins(*, memory_size: int, memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy()):
-    memory = CILMemory(memory_size)
-    return [CILMemoryPlugin(memory, memory_strategy=memory_strategy), CILReplayPlugin(memory)]
-
-
 if __name__ == "__main__":
     for seed in tqdm(SEEDS, unit="seed", desc="Training and evaluating methods on seeds"):
-        evaluate_on_seed(
+        evaluate_split_mnist(
             "tl-alternate",
             make_tricicl_alternate_training_plugins(
                 memory_size=200,
@@ -182,7 +82,7 @@ if __name__ == "__main__":
             ),
             seed,
         )
-        evaluate_on_seed(
+        evaluate_split_mnist(
             "tl-alternate-last",
             make_tricicl_alternate_training_plugins(
                 memory_size=200,
@@ -195,7 +95,7 @@ if __name__ == "__main__":
             ),
             seed,
         )
-        evaluate_on_seed(
+        evaluate_split_mnist(
             "tricicl",
             make_tricicl_during_training_plugin(
                 memory_size=200,
@@ -205,7 +105,7 @@ if __name__ == "__main__":
             ),
             seed,
         )
-        evaluate_on_seed(
+        evaluate_split_mnist(
             "tricicl-only",
             make_tricicl_during_training_plugin(
                 memory_size=200,

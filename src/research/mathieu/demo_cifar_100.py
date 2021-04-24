@@ -21,14 +21,17 @@ N_CLASSES = 100
 
 
 class LRSchedulerPlugin(StrategyPlugin):
-    def __init__(self, gamma: float = 0.2, milestones: List[int] = None):
+    def __init__(self, start_lr: float = 2.0, gamma: float = 0.2, milestones: List[int] = None):
         super().__init__()
 
+        self.start_lr = start_lr
         self.gamma = gamma
         self.milestones = milestones or [49, 63]
         self.scheduler: LambdaLR = None
 
     def before_training_exp(self, strategy: BaseStrategy, **kwargs):
+        for g in strategy.optimizer.param_groups:
+            g["lr"] = self.start_lr
         self.scheduler = MultiStepLR(strategy.optimizer, milestones=self.milestones, gamma=self.gamma)
 
     def after_training_epoch(self, strategy: BaseStrategy, **kwargs):
@@ -51,7 +54,7 @@ def evaluate_on_cifar_100(
     scenario = SplitCIFAR100(n_experiences=N_CLASSES // n_classes_per_batch)
     model = ResNet32(n_classes=N_CLASSES)
 
-    tb_logger = TensorboardLogger(tb_dir + f"/cifar100-{n_classes_per_batch}/{method_name}/{seed}_{create_time_id()}")
+    tb_logger = TensorboardLogger(tb_dir + f"/cifar100_{n_classes_per_batch}/{method_name}/{seed}_{create_time_id()}")
 
     loggers = [tb_logger]
     if verbose:
@@ -59,7 +62,7 @@ def evaluate_on_cifar_100(
 
     strategy = Naive(
         model=model,
-        optimizer=SGD(model.parameters(), lr=2.0),
+        optimizer=SGD(model.parameters(), lr=2.0, weight_decay=0.00001, momentum=0.9),
         criterion=CrossEntropyLoss(),
         train_epochs=train_epochs,
         train_mb_size=128,

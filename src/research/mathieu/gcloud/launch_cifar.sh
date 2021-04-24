@@ -1,4 +1,5 @@
-TASK_NAME=split_mnist
+
+TASK_NAME=cifar100_10
 
 cd ../../../..
 
@@ -8,21 +9,24 @@ JOB_DIR=gs://tricicl-public/packages/${DATETIME}
 
 poetry build -f wheel
 
-for METHOD in naive hybrid1; do
-  for SEED in 1 42; do
-    JOB_NAME=${TASK_NAME}_${METHOD}_${SEED}_${DATETIME}
 
-  #  gcloud ai-platform local train \
+for METHOD in naive replay; do
+  for SEED in 1; do
+    norm_method_name=${(L)METHOD//-/_}
+    JOB_NAME=${TASK_NAME}_${norm_method_name}_${SEED}_${DATETIME}
+
     echo "Starting job ${JOB_NAME}"
     gcloud ai-platform jobs submit training "${JOB_NAME}" \
-      --config src/research/mathieu/gcloud/job_cpu.yaml \
-      --labels task="${TASK_NAME}",method="${METHOD}" \
+      --config src/research/mathieu/gcloud/job_gpu.yaml \
+      --labels task="${TASK_NAME}",method="${norm_method_name}" \
       --job-dir "${JOB_DIR}" \
       --packages dist/tricicl-0.1.0-py3-none-any.whl \
-      --module-name research.mathieu.gcloud.demo_split_mnist \
+      --module-name research.mathieu.gcloud.launch_cifar \
       -- \
       --method-name ${METHOD} \
-      --seed ${SEED}
+      --seed ${SEED} \
+      --n-classes-per-batch 10 \
+      --memory-size 2000
   done
 done
 
