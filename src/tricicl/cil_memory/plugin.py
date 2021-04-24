@@ -20,15 +20,17 @@ class CILMemoryPlugin(StrategyPlugin):
         self.memory_strategy = memory_strategy
 
     def after_training_exp(self, strategy: BaseStrategy, **kwargs):
+        strategy.model.eval()
         self._add_experience_to_memory(strategy.experience, strategy.model)
         self.memory.prune_surplus()
+        strategy.model.train()
 
     def _add_experience_to_memory(self, experience: Experience, model: Module):
         for class_id, subset in make_per_class_subset(experience.dataset):
             self.memory.class_id2dataset[class_id] = self.memory_strategy.select(
                 subset,
                 model,
-                min(self.memory.m, len(experience.dataset)),
+                min(self.memory.m, len(subset)),
             )
 
 

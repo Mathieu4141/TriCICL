@@ -5,13 +5,15 @@ from torch import cat
 from torch.utils.data import DataLoader
 
 from tricicl.cil_memory.strategy.strategy import CILMemoryStrategyABC
+from tricicl.constants import device
 from tricicl.models.feature_based_module import FeatureBasedModule
 
 
 class HerdingMemoryStrategy(CILMemoryStrategyABC):
     def select(self, dataset: AvalancheSubset, model: FeatureBasedModule, m: int) -> AvalancheSubset:
-        model_device = next(model.parameters()).device
-        features = cat([model.featurize(images.to(model_device)) for images, *_ in DataLoader(dataset, batch_size=32)])
+        features = cat(
+            [model.featurize(images.to(device)).detach() for images, *_ in DataLoader(dataset, batch_size=32)]
+        )
         center = features.mean(dim=0)
         current_center = center * 0
         indices = []
