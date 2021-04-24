@@ -1,7 +1,6 @@
-import torch
 from avalanche.training.plugins import StrategyPlugin
 from avalanche.training.strategies import BaseStrategy
-from torch import stack, tensor
+from torch import Tensor, stack, tensor
 from torch.utils.data import DataLoader
 
 from tricicl.cil_memory.memory import CILMemory
@@ -28,7 +27,7 @@ class NMEPlugin(StrategyPlugin):
         self.nme.eval()
         centers, class_ids = [], []
         for class_id, dataset in self.memory.class_id2dataset.items():
-            center = torch.zeros(self.nme.base_module.features_size, device=self.nme.device)
+            center: Tensor = 0
             n_images = len(dataset)
             for images, *_ in DataLoader(dataset, batch_size=strategy.eval_mb_size):
                 center += self.nme.base_module.featurize(images.to(self.nme.device)).sum(dim=0) / n_images
