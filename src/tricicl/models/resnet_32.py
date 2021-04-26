@@ -5,7 +5,8 @@ https://github.com/akamaster/pytorch_resnet_cifar10
 from typing import Callable
 
 from torch import Tensor, relu
-from torch.nn import AvgPool2d, BatchNorm2d, Conv2d, Linear, Module, Sequential, init
+from torch.nn import BatchNorm2d, Conv2d, Linear, Module, Sequential, init
+from torch.nn.functional import avg_pool2d
 
 from tricicl.models.feature_based_module import FeatureBasedModule
 
@@ -21,7 +22,6 @@ class ResNet32(FeatureBasedModule):
         self.layer1 = self._make_layer(16, 5, stride=1)
         self.layer2 = self._make_layer(32, 5, stride=2)
         self.layer3 = self._make_layer(64, 5, stride=2)
-        self.avgpool = AvgPool2d(8, stride=1)
 
         self.classifier = Linear(64, n_classes)
 
@@ -32,7 +32,7 @@ class ResNet32(FeatureBasedModule):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.avgpool(out)
+        out = avg_pool2d(out, out.size()[3])
         out = out.view(out.size(0), -1)
         return out
 
@@ -52,9 +52,6 @@ class ResNet32(FeatureBasedModule):
 def _weights_init(m: Module):
     if isinstance(m, Linear) or isinstance(m, Conv2d):
         init.kaiming_normal_(m.weight)
-    elif isinstance(m, BatchNorm2d):
-        init.constant_(m.weight, 1)
-        init.constant_(m.bias, 0)
 
 
 class LambdaLayer(Module):

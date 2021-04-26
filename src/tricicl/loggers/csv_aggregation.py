@@ -1,3 +1,4 @@
+from re import Pattern
 from typing import List, Tuple
 
 from matplotlib.figure import Figure
@@ -8,12 +9,22 @@ from tricicl.loggers.tb_aggregation import get_aggregate_csv_file
 
 
 def display_aggregated_results(
-    task_name: str, *, use_simplified_metric_name: bool = False, metrics_names: List[str] = None
+    task_name: str,
+    *,
+    use_simplified_metric_name: bool = False,
+    metrics_names: List[str] = None,
+    exclude_regex: Pattern = None,
+    include_regex: Pattern = None,
 ):
     df = read_csv(get_aggregate_csv_file(task_name))
 
     if use_simplified_metric_name:
         df["metric"] = df["metric"].map(lambda s: s.replace("/eval_phase/test_stream", "").replace("/Task000", ""))
+
+    if exclude_regex:
+        df = df[df["run_algo"].map(lambda s: exclude_regex.match(s) is None)]
+    if include_regex:
+        df = df[df["run_algo"].map(lambda s: include_regex.match(s) is not None)]
 
     metrics_names = metrics_names or sorted(set(df["metric"]), key=_get_metric_name_priority)
 
