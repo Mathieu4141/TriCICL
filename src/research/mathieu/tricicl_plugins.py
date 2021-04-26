@@ -1,16 +1,13 @@
-from avalanche.training.plugins import LwFPlugin
-
 from tricicl.cil_memory.memory import CILMemory
 from tricicl.cil_memory.plugin import CILMemoryPlugin
 from tricicl.cil_memory.replay import CILReplayPlugin
 from tricicl.cil_memory.strategy.herding import HerdingMemoryStrategy
 from tricicl.cil_memory.strategy.strategy import CILMemoryStrategyABC
 from tricicl.models.nme.plugin import NMEPlugin
-from tricicl.triplet_loss.before_exp_distillation_plugin import BeforeExpDistillationPlugin
+from tricicl.strategies.lwf_mc import LwFMCPlugin
 from tricicl.triplet_loss.triplet_loss_alternate_training_plugin import TripletLossAlternateTrainingPlugin
 from tricicl.triplet_loss.triplet_loss_during_training_plugin import TripletLossDuringTrainingPlugin
 from tricicl.triplet_loss.triplet_loss_post_training_plugin import TripletLossPostTrainingPlugin
-
 # TODO clean that, too many repetitions here
 from tricicl.triplet_loss.triplet_loss_pre_training_plugin import TripletLossPreTrainingPlugin
 
@@ -41,7 +38,7 @@ def make_tricicl_post_training_plugins(
     if nme:
         plugins.append(NMEPlugin(memory))
     if distillation:
-        plugins.append(LwFPlugin())
+        plugins.append(LwFMCPlugin())
     return plugins
 
 
@@ -72,9 +69,9 @@ def make_tricicl_pre_training_plugins(
     if nme:
         plugins.append(NMEPlugin(memory))
     if distillation:
-        plugins.append(LwFPlugin())
+        plugins.append(LwFMCPlugin())
     if pre_distillation:
-        plugins.append(BeforeExpDistillationPlugin())
+        plugins.append(LwFMCPlugin(save_before_training=True))
     return plugins
 
 
@@ -108,7 +105,7 @@ def make_tricicl_alternate_training_plugins(
     if nme:
         plugins.append(NMEPlugin(memory))
     if distillation:
-        plugins.append(LwFPlugin())
+        plugins.append(LwFMCPlugin())
     return plugins
 
 
@@ -132,7 +129,7 @@ def make_tricicl_during_training_plugin(
     if nme:
         plugins.append(NMEPlugin(memory))
     if distillation:
-        plugins.append(LwFPlugin())
+        plugins.append(LwFMCPlugin())
     return plugins
 
 
