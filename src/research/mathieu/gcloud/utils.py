@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from avalanche.training.plugins import LwFPlugin
+from avalanche.training.plugins import LwFPlugin, ReplayPlugin
 
 from research.mathieu.tricicl_plugins import make_tricicl_post_training_plugins
 from tricicl.cil_memory.memory import CILMemory
@@ -13,6 +13,8 @@ from tricicl.strategies.icarl import make_icarl_plugins
 def get_method_plugins(args: Namespace):
     if args.method_name == "naive":
         return []
+    elif args.method_name == "replay_avalanche":
+        return [ReplayPlugin()]
     elif args.method_name == "replay":
         memory = CILMemory(args.memory_size)
         return [CILMemoryPlugin(memory, HerdingMemoryStrategy()), CILReplayPlugin(memory)]

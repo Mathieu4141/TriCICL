@@ -6,9 +6,13 @@ from tricicl.cil_memory.replay import CILReplayPlugin
 from tricicl.cil_memory.strategy.herding import HerdingMemoryStrategy
 from tricicl.cil_memory.strategy.strategy import CILMemoryStrategyABC
 from tricicl.models.nme.plugin import NMEPlugin
+from tricicl.triplet_loss.before_exp_distillation_plugin import BeforeExpDistillationPlugin
+from tricicl.triplet_loss.triplet_loss_alternate_training_plugin import TripletLossAlternateTrainingPlugin
 from tricicl.triplet_loss.triplet_loss_during_training_plugin import TripletLossDuringTrainingPlugin
-from tricicl.triplet_loss.triplet_loss_post_training_plugin import (TripletLossAlternateTrainingPlugin,
-                                                                    TripletLossPostTrainingPlugin)
+from tricicl.triplet_loss.triplet_loss_post_training_plugin import TripletLossPostTrainingPlugin
+
+# TODO clean that, too many repetitions here
+from tricicl.triplet_loss.triplet_loss_pre_training_plugin import TripletLossPreTrainingPlugin
 
 
 def make_tricicl_post_training_plugins(
@@ -38,6 +42,39 @@ def make_tricicl_post_training_plugins(
         plugins.append(NMEPlugin(memory))
     if distillation:
         plugins.append(LwFPlugin())
+    return plugins
+
+
+def make_tricicl_pre_training_plugins(
+    memory_size: int,
+    *,
+    distillation: bool,
+    pre_distillation: bool,
+    use_replay: bool = True,
+    use_training_dataloader: bool = True,
+    classification_loss_coef: float = 0,
+    nme: bool = False,
+    memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
+    margin: float = 1,
+):
+    memory = CILMemory(memory_size)
+    plugins = [
+        CILMemoryPlugin(memory, memory_strategy=memory_strategy),
+        TripletLossPreTrainingPlugin(
+            memory=memory,
+            margin=margin,
+            use_training_dataloader=use_training_dataloader,
+            classification_loss_coef=classification_loss_coef,
+        ),
+    ]
+    if use_replay:
+        plugins.append(CILReplayPlugin(memory))
+    if nme:
+        plugins.append(NMEPlugin(memory))
+    if distillation:
+        plugins.append(LwFPlugin())
+    if pre_distillation:
+        plugins.append(BeforeExpDistillationPlugin())
     return plugins
 
 

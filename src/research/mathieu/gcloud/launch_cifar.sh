@@ -10,7 +10,7 @@ JOB_DIR=gs://tricicl-public/packages/${DATETIME}
 poetry build -f wheel
 
 
-for METHOD in naive replay; do
+for METHOD in replay_avalanche; do
   for SEED in 1; do
     norm_method_name=${(L)METHOD//-/_}
     JOB_NAME=${TASK_NAME}_${norm_method_name}_${SEED}_${DATETIME}

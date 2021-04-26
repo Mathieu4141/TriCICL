@@ -4,12 +4,13 @@ from avalanche.benchmarks import SplitCIFAR100
 from avalanche.evaluation.metrics import StreamConfusionMatrix
 from avalanche.logging import InteractiveLogger
 from avalanche.training import EvaluationPlugin
-from avalanche.training.plugins import ReplayPlugin, StrategyPlugin
+from avalanche.training.plugins import StrategyPlugin
 from avalanche.training.strategies import BaseStrategy, Naive
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import LambdaLR, MultiStepLR
 
+from tricicl.cil_memory.memory import CILMemory
 from tricicl.constants import TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
@@ -62,7 +63,7 @@ def evaluate_on_cifar_100(
 
     strategy = Naive(
         model=model,
-        optimizer=SGD(model.parameters(), lr=2.0, weight_decay=0.00001, momentum=0.9),
+        optimizer=SGD(model.parameters(), lr=2.0, weight_decay=0.00001),
         criterion=CrossEntropyLoss(),
         train_epochs=train_epochs,
         train_mb_size=128,
@@ -86,4 +87,13 @@ def evaluate_on_cifar_100(
 
 
 if __name__ == "__main__":
-    evaluate_on_cifar_100(method_name="replay", plugins=[ReplayPlugin(2_000)], train_epochs=70, verbose=True)
+    _memory = CILMemory(2_000)
+    evaluate_on_cifar_100(
+        method_name="naive",
+        plugins=[
+            # CILMemoryPlugin(_memory, HerdingMemoryStrategy()),
+            # CILReplayPlugin(_memory),
+        ],
+        train_epochs=70,
+        verbose=True,
+    )
