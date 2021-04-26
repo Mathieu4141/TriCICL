@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from avalanche.training.plugins import LwFPlugin, ReplayPlugin
+from avalanche.training.plugins import ReplayPlugin
 
 from research.mathieu.tricicl_plugins import make_tricicl_post_training_plugins
 from tricicl.cil_memory.memory import CILMemory
@@ -8,6 +8,7 @@ from tricicl.cil_memory.plugin import CILMemoryPlugin
 from tricicl.cil_memory.replay import CILReplayPlugin
 from tricicl.cil_memory.strategy.herding import HerdingMemoryStrategy
 from tricicl.strategies.icarl import make_icarl_plugins
+from tricicl.strategies.lwf_mc import LwFMCPlugin
 
 
 def get_method_plugins(args: Namespace):
@@ -20,7 +21,7 @@ def get_method_plugins(args: Namespace):
         return [CILMemoryPlugin(memory, HerdingMemoryStrategy()), CILReplayPlugin(memory)]
     elif args.method_name == "hybrid1":
         memory = CILMemory(args.memory_size)
-        return [CILMemoryPlugin(memory, HerdingMemoryStrategy()), CILReplayPlugin(memory), LwFPlugin()]
+        return [CILMemoryPlugin(memory, HerdingMemoryStrategy()), CILReplayPlugin(memory), LwFMCPlugin()]
     elif args.method_name == "iCaRL":
         return make_icarl_plugins(args.memory_size)
     elif args.method_name == "tricicl-P-ND":

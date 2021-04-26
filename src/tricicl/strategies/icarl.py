@@ -1,6 +1,6 @@
 from typing import List
 
-from avalanche.training.plugins import LwFPlugin, StrategyPlugin
+from avalanche.training.plugins import StrategyPlugin
 
 from tricicl.cil_memory.memory import CILMemory
 from tricicl.cil_memory.plugin import CILMemoryPlugin
@@ -8,6 +8,7 @@ from tricicl.cil_memory.replay import CILReplayPlugin
 from tricicl.cil_memory.strategy.herding import HerdingMemoryStrategy
 from tricicl.cil_memory.strategy.strategy import CILMemoryStrategyABC
 from tricicl.models.nme.plugin import NMEPlugin
+from tricicl.strategies.lwf_mc import LwFMCPlugin
 
 
 def make_icarl_plugins(
@@ -18,5 +19,5 @@ def make_icarl_plugins(
         CILMemoryPlugin(memory, memory_strategy=memory_strategy),
         NMEPlugin(memory),
         CILReplayPlugin(memory),
-        LwFPlugin(),
+        LwFMCPlugin(),
     ]
