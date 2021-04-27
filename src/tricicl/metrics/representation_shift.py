@@ -117,7 +117,16 @@ class MeanL2RepresentationShift(RepresentationShift):
         return torch.mean(torch.linalg.norm(value1 - value2, dim=1)).item()
 
     def __str__(self):
-        return "MeanL2RepresentationShift"
+        return
+
+
+class MeanCosineRepresentationShift(RepresentationShift):
+    def _shift_measure(self, value1: Tensor, value2: Tensor) -> float:
+        cos = torch.nn.CosineSimilarity(dim=1, eps=1e-6)
+        return torch.mean(cos(value1, value2)).item()
+
+    def __str__(self):
+        return "MeanCosineRepresentationShift"
 
 
 class ExperienceMeanRepresentationShift(PluginMetric[Dict[int, float]]):
