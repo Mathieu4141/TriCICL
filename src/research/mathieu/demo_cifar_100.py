@@ -9,12 +9,16 @@ from avalanche.training.strategies import BaseStrategy, Naive
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import LambdaLR, MultiStepLR
-
 from tricicl.cil_memory.memory import CILMemory
 from tricicl.constants import TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
+from tricicl.metrics.representation_shift import (
+    ExperienceMeanRepresentationShift,
+    MeanL2RepresentationShift,
+    MeanCosineRepresentationShift,
+)
 from tricicl.models.resnet_32 import ResNet32
 from tricicl.utils.time import create_time_id
 
@@ -49,7 +53,6 @@ def evaluate_on_cifar_100(
     train_epochs: int = 70,
     n_classes_per_batch: int = 10,
 ):
-
     assert not N_CLASSES % n_classes_per_batch, "n_classes should be a multiple of n_classes_per_batch"
 
     scenario = SplitCIFAR100(n_experiences=N_CLASSES // n_classes_per_batch)
@@ -70,7 +73,12 @@ def evaluate_on_cifar_100(
         device=device,
         plugins=plugins + [LRSchedulerPlugin()],
         evaluator=EvaluationPlugin(
-            [NormalizedStreamAccuracy(), NormalizedExperienceAccuracy()],
+            [
+                NormalizedStreamAccuracy(),
+                NormalizedExperienceAccuracy(),
+                ExperienceMeanRepresentationShift(MeanL2RepresentationShift()),
+                ExperienceMeanRepresentationShift(MeanCosineRepresentationShift()),
+            ],
             StreamConfusionMatrix(
                 num_classes=N_CLASSES,
                 image_creator=SortedCMImageCreator(scenario.classes_order),

@@ -21,6 +21,11 @@ from tricicl.constants import SEEDS, TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
+from tricicl.metrics.representation_shift import (
+    ExperienceMeanRepresentationShift,
+    MeanL2RepresentationShift,
+    MeanCosineRepresentationShift,
+)
 from tricicl.models.simple_mlp import SimpleMLP
 from tricicl.utils.time import create_time_id
 
@@ -55,7 +60,12 @@ def evaluate_split_mnist(
         device=device,
         plugins=plugins,
         evaluator=EvaluationPlugin(
-            [NormalizedStreamAccuracy(), NormalizedExperienceAccuracy()],
+            [
+                NormalizedStreamAccuracy(),
+                NormalizedExperienceAccuracy(),
+                ExperienceMeanRepresentationShift(MeanL2RepresentationShift()),
+                ExperienceMeanRepresentationShift(MeanCosineRepresentationShift()),
+            ],
             StreamConfusionMatrix(
                 num_classes=split_mnist.n_classes,
                 image_creator=SortedCMImageCreator(split_mnist.classes_order),
