@@ -11,13 +11,21 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from tqdm import tqdm
 
-from research.mathieu.tricicl_plugins import (make_tricicl_alternate_training_plugins,
-                                              make_tricicl_during_training_plugin, make_tricicl_post_training_plugins,
-                                              make_tricicl_pre_training_plugins)
+from research.mathieu.tricicl_plugins import (
+    make_tricicl_alternate_training_plugins,
+    make_tricicl_during_training_plugin,
+    make_tricicl_post_training_plugins,
+    make_tricicl_pre_training_plugins,
+)
 from tricicl.constants import SEEDS, TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
+from tricicl.metrics.representation_shift import (
+    ExperienceMeanRepresentationShift,
+    MeanL2RepresentationShift,
+    MeanCosineRepresentationShift,
+)
 from tricicl.models.simple_mlp import SimpleMLP
 from tricicl.strategies.lwf_mc import LwFMCPlugin
 from tricicl.utils.time import create_time_id
@@ -53,7 +61,12 @@ def evaluate_split_mnist(
         device=device,
         plugins=plugins,
         evaluator=EvaluationPlugin(
-            [NormalizedStreamAccuracy(), NormalizedExperienceAccuracy()],
+            [
+                NormalizedStreamAccuracy(),
+                NormalizedExperienceAccuracy(),
+                ExperienceMeanRepresentationShift(MeanL2RepresentationShift()),
+                ExperienceMeanRepresentationShift(MeanCosineRepresentationShift()),
+            ],
             StreamConfusionMatrix(
                 num_classes=split_mnist.n_classes,
                 image_creator=SortedCMImageCreator(split_mnist.classes_order),
@@ -73,161 +86,163 @@ if __name__ == "__main__":
     for seed in tqdm(SEEDS, unit="seed", desc="Training and evaluating methods on seeds"):
         # evaluate_split_mnist("LwF", [LwFPlugin()], seed)
         evaluate_split_mnist("LwF.MC", [LwFMCPlugin()], seed)
-        # evaluate_split_mnist(
-        #     "tl-pre-all",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=True,
-        #         classification_loss_coef=0,
-        #         distillation=False,
-        #         pre_distillation=False,
-        #         nme=False,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-D-all",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=True,
-        #         classification_loss_coef=0,
-        #         nme=False,
-        #         distillation=True,
-        #         pre_distillation=False,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=False,
-        #         classification_loss_coef=0,
-        #         distillation=False,
-        #         pre_distillation=False,
-        #         nme=False,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-D",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=False,
-        #         classification_loss_coef=0,
-        #         nme=False,
-        #         distillation=True,
-        #         pre_distillation=False,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-PD-all",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=True,
-        #         classification_loss_coef=0,
-        #         nme=False,
-        #         distillation=False,
-        #         pre_distillation=True,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-PD",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=False,
-        #         classification_loss_coef=0,
-        #         nme=False,
-        #         distillation=True,
-        #         pre_distillation=True,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-nme",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=True,
-        #         classification_loss_coef=0,
-        #         nme=True,
-        #         distillation=False,
-        #     ),
-        #     seed,
-        # )
-        # evaluate_split_mnist(
-        #     "tl-pre-nme-D",
-        #     make_tricicl_pre_training_plugins(
-        #         memory_size=200,
-        #         use_replay=True,
-        #         use_training_dataloader=True,
-        #         classification_loss_coef=0,
-        #         nme=True,
-        #         distillation=True,
-        #     ),
-        #     seed,
-        # )
-    #     evaluate_split_mnist(
-    #         "tl-alternate",
-    #         make_tricicl_alternate_training_plugins(
-    #             memory_size=200,
-    #             use_replay=True,
-    #             use_training_dataloader=False,
-    #             classification_loss_coef=0,
-    #             nme=False,
-    #             distillation=False,
-    #             after_last_epoch=False,
-    #         ),
-    #         seed,
-    #     )
-    #     evaluate_split_mnist(
-    #         "tl-alternate-last",
-    #         make_tricicl_alternate_training_plugins(
-    #             memory_size=200,
-    #             use_replay=True,
-    #             use_training_dataloader=False,
-    #             classification_loss_coef=0,
-    #             nme=False,
-    #             distillation=False,
-    #             after_last_epoch=True,
-    #         ),
-    #         seed,
-    #     )
-    #     evaluate_split_mnist(
-    #         "tricicl",
-    #         make_tricicl_during_training_plugin(
-    #             memory_size=200,
-    #             use_replay=True,
-    #             nme=False,
-    #             distillation=False,
-    #         ),
-    #         seed,
-    #     )
-    #     evaluate_split_mnist(
-    #         "tricicl-only",
-    #         make_tricicl_during_training_plugin(
-    #             memory_size=200,
-    #             use_replay=True,
-    #             nme=True,
-    #             distillation=False,
-    #         ),
-    #         seed,
-    #         verbose=False,
-    #         criterion=lambda *_, **__: 0,
-    #     )
-    #     evaluate_on_seed("iCaRL", make_icarl_plugins(memory_size=200), seed)
-    #     evaluate_on_seed("LwF", [LwFPlugin()], seed)
-    #     evaluate_on_seed("naive", [], seed)
-    #     evaluate_on_seed("replay", [ReplayPlugin()], seed)
-    #     evaluate_on_seed("hybrid1", [ReplayPlugin(), LwFPlugin()], seed)
+        evaluate_split_mnist(
+            "tl-pre-all",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=True,
+                classification_loss_coef=0,
+                distillation=False,
+                pre_distillation=False,
+                nme=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-D-all",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=True,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=True,
+                pre_distillation=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=False,
+                classification_loss_coef=0,
+                distillation=False,
+                pre_distillation=False,
+                nme=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-D",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=False,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=True,
+                pre_distillation=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-PD-all",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=True,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=False,
+                pre_distillation=True,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-PD",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=False,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=True,
+                pre_distillation=True,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-nme",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=True,
+                classification_loss_coef=0,
+                nme=True,
+                distillation=False,
+                pre_distillation=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-pre-nme-D",
+            make_tricicl_pre_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=True,
+                classification_loss_coef=0,
+                nme=True,
+                distillation=True,
+                pre_distillation=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-alternate",
+            make_tricicl_alternate_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=False,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=False,
+                after_last_epoch=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tl-alternate-last",
+            make_tricicl_alternate_training_plugins(
+                memory_size=200,
+                use_replay=True,
+                use_training_dataloader=False,
+                classification_loss_coef=0,
+                nme=False,
+                distillation=False,
+                after_last_epoch=True,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tricicl",
+            make_tricicl_during_training_plugin(
+                memory_size=200,
+                use_replay=True,
+                nme=False,
+                distillation=False,
+            ),
+            seed,
+        )
+        evaluate_split_mnist(
+            "tricicl-only",
+            make_tricicl_during_training_plugin(
+                memory_size=200,
+                use_replay=True,
+                nme=True,
+                distillation=False,
+            ),
+            seed,
+            verbose=False,
+            criterion=lambda *_, **__: 0,
+        )
+        # evaluate_on_seed("iCaRL", make_icarl_plugins(memory_size=200), seed)
+        # evaluate_on_seed("LwF", [LwFPlugin()], seed)
+        # evaluate_on_seed("naive", [], seed)
+        # evaluate_on_seed("replay", [ReplayPlugin()], seed)
+        # evaluate_on_seed("hybrid1", [ReplayPlugin(), LwFPlugin()], seed)
     #     evaluate_on_seed(
     #         "tl-post",
     #         make_tricicl_post_training_plugins(

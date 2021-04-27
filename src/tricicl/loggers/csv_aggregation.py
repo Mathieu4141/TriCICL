@@ -36,8 +36,8 @@ def display_aggregated_results(
         hue="run_algo",
         col="metric",
         col_order=metrics_names,
-        col_wrap=min(3, len(metrics_names)),
-        facet_kws={"sharex": False, "legend_out": False},
+        col_wrap=min(4, len(metrics_names)),
+        facet_kws={"sharex": False, "sharey": False, "legend_out": False},
     )
     fig: Figure = g.fig
     fig.suptitle(task_name, fontsize=16)
