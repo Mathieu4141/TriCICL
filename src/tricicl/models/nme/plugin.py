@@ -30,7 +30,7 @@ class NMEPlugin(StrategyPlugin):
             center: Tensor = 0
             n_images = len(dataset)
             for images, *_ in DataLoader(dataset, batch_size=strategy.eval_mb_size):
-                center += self.nme.base_module.featurize(images.to(self.nme.device)).sum(dim=0) / n_images
+                center += self.nme.base_module.featurize(images.to(self.nme.device)).detach().sum(dim=0) / n_images
             centers.append(center)
             class_ids.append(class_id)
         self.nme.centers = stack(centers)
