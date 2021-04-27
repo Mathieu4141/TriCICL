@@ -97,7 +97,7 @@ class RepresentationShift(ABC, Metric[Union[None, Tensor, Dict[int, Tensor], flo
                 return None
 
         ik = set(self.initial.keys())
-        both_keys = list(ik.intersection(set(self.last.keys())))
+        both_keys = ik.intersection(set(self.last.keys()))
 
         for k in both_keys:
             representation_shift[k] = self._shift_measure(value1=self.initial[k], value2=self.last[k])
