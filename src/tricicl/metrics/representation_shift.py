@@ -117,7 +117,7 @@ class MeanL2RepresentationShift(RepresentationShift):
         return torch.mean(torch.linalg.norm(value1 - value2, dim=1)).item()
 
     def __str__(self):
-        return
+        return "MeanL2RepresentationShift"
 
 
 class MeanCosineRepresentationShift(RepresentationShift):
