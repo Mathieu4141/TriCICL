@@ -7,6 +7,7 @@ from avalanche.evaluation.metric_results import MetricValue, MetricResult
 from avalanche.evaluation.metric_utils import get_metric_name
 from avalanche.training.strategies import BaseStrategy
 from torch import Tensor
+from tricicl.models.feature_based_module import FeatureBasedModule
 
 
 class Representation:
@@ -209,7 +210,10 @@ class ExperienceMeanRepresentationShift(PluginMetric[Dict[int, float]]):
     def after_eval_iteration(self, strategy: "BaseStrategy") -> None:
         super().after_eval_iteration(strategy)
         self.eval_exp_id = strategy.experience.current_experience
-        self._current_representation.update(logits=strategy.logits)
+        if isinstance(strategy.model, FeatureBasedModule):
+            self._current_representation.update(logits=strategy.model.featurize(strategy.mb_x))
+        else:
+            self._current_representation.update(logits=strategy.logits)
 
     def after_eval_exp(self, strategy: "BaseStrategy") -> MetricResult:
         # update experience on which training just ended
