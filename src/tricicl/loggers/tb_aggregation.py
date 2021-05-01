@@ -14,9 +14,9 @@ from tricicl.storage.remote_storage import RemoteStorageABC, SyncPath
 from tricicl.utils.path import empty_dir
 
 
-def aggregate_task_results(task_name: str, remote_storage: RemoteStorageABC = LocalStorage()):
+def aggregate_task_results(task_name: str, *, expected_size: int, remote_storage: RemoteStorageABC = LocalStorage()):
     remote_storage.download_directory(SyncPath.from_local(TB_DIR / task_name))
-    results = _load_task_results(task_name)
+    results = _load_task_results(task_name, expected_size)
     _aggregate_task_results_to_csv(task_name, results)
     _aggregate_task_results_to_tb(task_name, results)
 
@@ -44,14 +44,22 @@ class AlgoResults:
         return self.metric_name2results.items().__iter__()
 
 
-def _load_task_results(task_name: str) -> List[AlgoResults]:
-    return [_load_algo_results(algo_dir) for algo_dir in _get_all_algo_dirs(task_name)]
+def _load_task_results(task_name: str, expected_size: int) -> List[AlgoResults]:
+    return [_load_algo_results(algo_dir, expected_size) for algo_dir in _get_all_algo_dirs(task_name)]
 
 
-def _load_algo_results(algo_dir: Path) -> AlgoResults:
+def _load_algo_results(algo_dir: Path, expected_size: int) -> AlgoResults:
     res = AlgoResults(algo_dir.name)
     for run_dir in algo_dir.glob("*"):
         summary = EventAccumulator(str(run_dir)).Reload()
+
+        if (
+            "Top1_Acc_Stream/eval_phase/test_stream" not in summary.Tags()["scalars"]
+            or len(summary.Scalars("Top1_Acc_Stream/eval_phase/test_stream")) < expected_size
+        ):
+            print(f"Skipping incomplete run {run_dir.parent.name}/{run_dir.name}")
+            continue
+
         for metric_name in summary.Tags()["scalars"]:
             summary.Scalars(metric_name)
             res.metric_name2results[metric_name].append(

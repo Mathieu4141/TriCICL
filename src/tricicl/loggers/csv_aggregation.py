@@ -15,6 +15,8 @@ def display_aggregated_results(
     metrics_names: List[str] = None,
     exclude_regex: Pattern = None,
     include_regex: Pattern = None,
+    renames: List[Tuple[str, str]] = None,
+    n_steps: int,
 ):
     df = read_csv(get_aggregate_csv_file(task_name))
 
@@ -26,7 +28,20 @@ def display_aggregated_results(
     if include_regex:
         df = df[df["run_algo"].map(lambda s: include_regex.match(s) is not None)]
 
-    metrics_names = metrics_names or sorted(set(df["metric"]), key=_get_metric_name_priority)
+    for algo_name, replacement in renames or []:
+        df["run_algo"] = df["run_algo"].map(lambda s: replacement if s == algo_name else s)
+
+    algo_name2score = dict(
+        df[(df["step"] == n_steps) & (df["metric"] == "Top1_Acc_Stream")]
+        .groupby("run_algo")
+        .mean()["value"]
+        .iteritems()
+    )
+    df["run_algo"] = df["run_algo"].map(lambda name: f"{name} ({algo_name2score[name]:.1%})")
+
+    all_metrics_names = sorted(set(df["metric"]), key=_get_metric_name_priority)
+    print(all_metrics_names)
+    metrics_names = metrics_names or all_metrics_names
 
     g: FacetGrid = relplot(
         data=df,
@@ -36,7 +51,7 @@ def display_aggregated_results(
         hue="run_algo",
         col="metric",
         col_order=metrics_names,
-        col_wrap=min(4, len(metrics_names)),
+        col_wrap=min(3, len(metrics_names)),
         facet_kws={"sharex": False, "sharey": False, "legend_out": False},
     )
     fig: Figure = g.fig
