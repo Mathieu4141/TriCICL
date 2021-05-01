@@ -45,8 +45,8 @@ def make_tricicl_post_training_plugins(
 def make_tricicl_pre_training_plugins(
     memory_size: int,
     *,
-    distillation: bool,
-    pre_distillation: bool,
+    distillation: bool = False,
+    pre_distillation: bool = False,
     use_replay: bool = True,
     use_training_dataloader: bool = True,
     classification_loss_coef: float = 0,
@@ -54,6 +54,7 @@ def make_tricicl_pre_training_plugins(
     memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
     margin: float = 1,
 ):
+    assert not (distillation and pre_distillation)
     memory = CILMemory(memory_size)
     plugins = [
         CILMemoryPlugin(memory, memory_strategy=memory_strategy),
@@ -76,14 +77,14 @@ def make_tricicl_pre_training_plugins(
 
 
 def make_tricicl_alternate_training_plugins(
-    *,
     memory_size: int,
-    use_replay: bool,
-    use_training_dataloader: bool,
-    classification_loss_coef: float,
-    nme: bool,
+    *,
+    use_replay: bool = True,
+    use_training_dataloader: bool = True,
+    classification_loss_coef: float = False,
+    nme: bool = False,
     distillation: bool,
-    after_last_epoch: bool,
+    after_last_epoch: bool = True,
     memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
     margin: float = 1,
     verbose: bool = False,
@@ -110,10 +111,10 @@ def make_tricicl_alternate_training_plugins(
 
 
 def make_tricicl_during_training_plugin(
-    *,
     memory_size: int,
-    use_replay: bool,
-    nme: bool,
+    *,
+    use_replay: bool = True,
+    nme: bool = False,
     distillation: bool,
     memory_strategy: CILMemoryStrategyABC = HerdingMemoryStrategy(),
     margin: float = 1,

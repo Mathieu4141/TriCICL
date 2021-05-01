@@ -9,16 +9,14 @@ from avalanche.training.strategies import BaseStrategy, Naive
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import LambdaLR, MultiStepLR
+
 from tricicl.cil_memory.memory import CILMemory
 from tricicl.constants import TB_DIR, device
 from tricicl.loggers.tb import TensorboardLogger
 from tricicl.metrics.confusion_matrix import SortedCMImageCreator
 from tricicl.metrics.normalized_accuracy import NormalizedExperienceAccuracy, NormalizedStreamAccuracy
-from tricicl.metrics.representation_shift import (
-    ExperienceMeanRepresentationShift,
-    MeanL2RepresentationShift,
-    MeanCosineRepresentationShift,
-)
+from tricicl.metrics.representation_shift import (ExperienceMeanRepresentationShift, MeanCosineRepresentationShift,
+                                                  MeanL2RepresentationShift)
 from tricicl.models.resnet_32 import ResNet32
 from tricicl.utils.time import create_time_id
 
@@ -52,6 +50,9 @@ def evaluate_on_cifar_100(
     verbose: bool = False,
     train_epochs: int = 70,
     n_classes_per_batch: int = 10,
+    start_lr: float = 2.0,
+    lr_milestones: List[int] = None,
+    lr_gamma: float = 0.2,
 ):
     assert not N_CLASSES % n_classes_per_batch, "n_classes should be a multiple of n_classes_per_batch"
 
@@ -71,7 +72,7 @@ def evaluate_on_cifar_100(
         train_epochs=train_epochs,
         train_mb_size=128,
         device=device,
-        plugins=plugins + [LRSchedulerPlugin()],
+        plugins=plugins + [LRSchedulerPlugin(start_lr=start_lr, milestones=lr_milestones, gamma=lr_gamma)],
         evaluator=EvaluationPlugin(
             [
                 NormalizedStreamAccuracy(),
